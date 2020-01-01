@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>S. Sefa Ayran</title>
+    <script src="jquery-3.4.1.slim.min.js"></script>
+</head>
+<body>
+<input type="file" name="file" id="file">
+<p id="hepsi"></p>
+
+<script>
+    function median(values){
+        values.sort(function(a,b){
+            return a-b;
+        });
+        var half = Math.floor(values.length / 2);
+
+        if (values.length % 2)
+            return values[half];
+        else
+            return (values[half - 1] + values[half]) / 2.0;
+    }
+    let soruSayisi,cevapAnahtari,ogrenciSayisi = ""
+    let ogrenci = []
+    let txtData = ""
+    let ogrenciNotlari = []
+    document.getElementById('file').onchange = function(){
+
+        var file = this.files[0];
+
+        var reader = new FileReader();
+        reader.onload = function(progressEvent){
+            var lines = this.result.split('\n');
+            for(var line = 0; line < lines.length; line++){
+                if (line === 0){
+                    soruSayisi = lines[line]
+                }
+                if (line === 1){
+                    cevapAnahtari = lines[line]
+                }
+                if(line !== 0 && line !== 1){
+                    ogrenci.push(lines[line])
+                }
+            }
+            ogrenciSayisi = ogrenci.length
+
+            console.log(soruSayisi)
+            console.log(cevapAnahtari)
+            console.log(ogrenci)
+            console.log(ogrenciSayisi)
+            $('#hepsi').append('CEVAP ANAHTARI : '+cevapAnahtari+' <br/><hr/>')
+            cevapAnahtari = cevapAnahtari.split(',')
+            ogrenci.forEach(function(ogrenciVerisi) {
+                let ogrenciPuan = 0
+                ogrenciVerisi = ogrenciVerisi.split(',')
+                let ogrenciNO = ogrenciVerisi[0]
+                $('#hepsi').append('Öğrenci NO : <b>'+ogrenciNO+'<b/> <br/>')
+                let say = 0
+                ogrenciVerisi.forEach(function(ogrenciCevap) {
+                    if (say !== 0){
+                        if(ogrenciCevap === cevapAnahtari[say-1]){
+                            ogrenciPuan+=4
+                        }
+                        if(ogrenciCevap !== cevapAnahtari[say-1] && ogrenciCevap !== ''){
+                            ogrenciPuan-=1
+                        }
+                        $('#hepsi').append('Soru '+say+' -  <b>'+ogrenciCevap+'<b/> <br/>')
+                    }
+                    say++
+                });
+                if(ogrenciPuan < 0){
+                    ogrenciPuan = 0
+                }
+                txtData+=ogrenciNO+','+ogrenciPuan+'\n'
+                ogrenciNotlari.push(ogrenciPuan)
+                ogrenciNotlari.sort(function(a, b){return b - a});
+
+                $('#hepsi').append('PUAN : '+ogrenciPuan)
+                $('#hepsi').append('<br/><hr/>')
+            });
+            console.log(ogrenciNotlari)
+            $('#hepsi').append('NOTLAR : <b>'+ogrenciNotlari.join(',')+'</b><br/>')
+            $('#hepsi').append('EN DÜŞÜK NOT : <b>'+Math.min.apply(Math, ogrenciNotlari)+'</b><br/>')
+            $('#hepsi').append('EN YÜKSEK NOT : <b>'+Math.max.apply(Math, ogrenciNotlari)+'</b><br/>')
+
+            const sum = ogrenciNotlari.reduce((a, b) => a + b, 0);
+            const avg = (sum / ogrenciNotlari.length) || 0;
+
+            $('#hepsi').append('ORTALAMA : <b>'+avg+'</b><br/>')
+            $('#hepsi').append('MEDYAN : <b>'+median(ogrenciNotlari)+'</b><br/>')
+            $('#hepsi').append('AÇIKLIK : <b>'+parseInt(Math.max.apply(Math, ogrenciNotlari) - Math.min.apply(Math, ogrenciNotlari))+'</b>')
+            txtData+=Math.max.apply(Math, ogrenciNotlari)+','+Math.min.apply(Math, ogrenciNotlari)+','+avg+','+median(ogrenciNotlari)+','+parseInt(Math.max.apply(Math, ogrenciNotlari) - Math.min.apply(Math, ogrenciNotlari))
+
+            let a = document.createElement('a');
+            a.href = "data:application/octet-stream,"+encodeURIComponent(txtData);
+            a.download = 'output.txt';
+            a.click();
+        };
+        reader.readAsText(file);
+
+    };
+
+
+
+</script>
+</body>
+</html>
